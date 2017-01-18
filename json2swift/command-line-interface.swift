@@ -76,19 +76,26 @@ private func generateSwiftFileBasedOnJSON(inFile jsonFilePath: String, includeJS
     catch { return "File does not contain valid JSON: \(jsonFilePath)" }
     
     let jsonSchema: JSONElementSchema
-    if      let jsonElement = jsonObject as? JSONElement   { jsonSchema = JSONElementSchema.inferred(from: jsonElement, named: "root-type") }
-    else if let jsonArray   = jsonObject as? [JSONElement] { jsonSchema = JSONElementSchema.inferred(from: jsonArray,   named: "root-type") }
+    let rootNameFromPath = url.deletingPathExtension().lastPathComponent
+
+    if      let jsonElement = jsonObject as? JSONElement   { jsonSchema = JSONElementSchema.inferred(from: jsonElement, named: rootNameFromPath ) }
+    else if let jsonArray   = jsonObject as? [JSONElement] { jsonSchema = JSONElementSchema.inferred(from: jsonArray, named: rootNameFromPath ) }
     else                                                   { return "Unsupported JSON format: must be a dictionary or array of dictionaries." }
-    
+
     let swiftStruct = SwiftStruct.create(from: jsonSchema)
-    let swiftCode = includeJSONUtilities
-        ? SwiftCodeGenerator.generateCodeWithJSONUtilities(for: swiftStruct)
-        : SwiftCodeGenerator.generateCode(for: swiftStruct)
-    
-    let swiftFilePath = (jsonFilePath as NSString).deletingPathExtension + ".swift"
-    guard write(swiftCode: swiftCode, toFile: swiftFilePath) else { return "Unable to write to file: \(swiftFilePath)" }
-    
+    writeGeneratedCode(swiftStruct: swiftStruct, jsonFilePath: jsonFilePath)
+
     return nil
+}
+
+func writeGeneratedCode(swiftStruct: SwiftStruct, jsonFilePath: String) {
+    let stringForStruct = SwiftCodeGenerator.generateCode(for: swiftStruct)
+    let swiftFilePath = (jsonFilePath as NSString).deletingLastPathComponent + "/" + swiftStruct.name + ".swift"
+    guard write(swiftCode: stringForStruct, toFile: swiftFilePath) else { print ("Unable to write to file: \(swiftFilePath)"); return }
+    print(" Struct file created: " + swiftFilePath)
+    swiftStruct.nestedStructs.forEach { nestedStruct in
+        writeGeneratedCode(swiftStruct: nestedStruct, jsonFilePath: jsonFilePath)
+    }
 }
 
 private func writeJSONUtilitiesFile(to filePath: String) -> Bool {
