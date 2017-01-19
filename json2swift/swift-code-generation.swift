@@ -94,14 +94,14 @@ fileprivate extension SwiftStruct {
 
     private func toLinesOfCode(at indentation: Indentation) -> [LineOfCode] {
         return indentation.apply(
-            toFirstLine: "public struct \(name): {",
+            toFirstLine: "public struct \(name) {",
             nestedLines:      linesOfCodeForMembers(at:),
             andLastLine: "}")
     }
 
     private func toExtenstionLinesOfCode(at indentation: Indentation) -> [LineOfCode] {
         return indentation.apply(
-            toFirstLine: "\npublic extension struct \(name): Unboxable {",
+            toFirstLine: "\nextension \(name): Unboxable {",
             nestedLines:       failableInitializer.toLinesOfCode(at:),
             andLastLine: "}")
     }
