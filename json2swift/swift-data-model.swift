@@ -40,11 +40,9 @@ struct SwiftFailableInitializer {
     let optionalTransformations: [TransformationFromJSON]
 }
 
-enum TransformationFromJSON {
-    case toCustomStruct(       attributeName: String, propertyName: String, type: SwiftStruct)
-    case toPrimitiveValue(     attributeName: String, propertyName: String, type: SwiftPrimitiveValueType)
-    case toCustomStructArray(  attributeName: String, propertyName: String, elementType: SwiftStruct,             hasOptionalElements: Bool)
-    case toPrimitiveValueArray(attributeName: String, propertyName: String, elementType: SwiftPrimitiveValueType, hasOptionalElements: Bool)
+struct TransformationFromJSON {
+    let attributeName: String
+    let propertyName: String
 }
 
 enum SwiftPrimitiveValueType {

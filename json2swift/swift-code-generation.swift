@@ -188,24 +188,6 @@ fileprivate extension SwiftFailableInitializer {
 
 // Internal for unit test access.
 internal extension TransformationFromJSON {
-    var propertyName: String {
-        switch self {
-        case let .toCustomStruct(_, propertyName, _):           return propertyName
-        case let .toPrimitiveValue(_, propertyName, _):         return propertyName
-        case let .toCustomStructArray(_, propertyName, _, _):   return propertyName
-        case let .toPrimitiveValueArray(_, propertyName, _, _): return propertyName
-        }
-    }
-
-    var attributeName: String {
-        switch self {
-        case let .toCustomStruct(attributeName , _, _):           return attributeName
-        case let .toPrimitiveValue(attributeName , _, _):         return attributeName
-        case let .toCustomStructArray(attributeName , _, _, _):   return attributeName
-        case let .toPrimitiveValueArray(attributeName, _, _, _):  return attributeName
-        }
-    }
-
     var requiredUnboxStatement: LineOfCode {
         return "self.\(propertyName) = try unboxer.unbox(key: \"\(attributeName)\")"
     }
@@ -213,7 +195,6 @@ internal extension TransformationFromJSON {
     var optionalUnboxStatement: LineOfCode {
         return "self.\(propertyName) = unboxer.unbox(key: \"\(attributeName)\")"
     }
-
 }
 
 fileprivate extension SwiftPrimitiveValueType {

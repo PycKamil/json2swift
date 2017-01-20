@@ -9,31 +9,14 @@
 import XCTest
 
 class swift_code_generation_custom_struct_tests: XCTestCase {
-    func test_custom_struct() {
-        let customStruct = createStruct(named: "SomeStruct")
-        let transformation = TransformationFromJSON.toCustomStruct(attributeName: "a", propertyName: "p", type: customStruct)
+    func testOptionalUnboxStatement() {
+        let transformation = TransformationFromJSON(attributeName: "a", propertyName: "p")
         XCTAssertEqual(transformation.optionalUnboxStatement, "self.p = unboxer.unbox(key: \"a\")")
     }
     
-    func test_array_of_required_struct() {
-        let someStruct = createStruct(named: "SomeStruct")
-        let transformation = TransformationFromJSON.toCustomStructArray(attributeName: "a", propertyName: "p", elementType: someStruct, hasOptionalElements: false)
+    func testRequiredUnboxStatement() {
+        let transformation = TransformationFromJSON(attributeName: "a", propertyName: "p")
         XCTAssertEqual(transformation.requiredUnboxStatement, "self.p = try unboxer.unbox(key: \"a\")")
     }
-    
-    func test_array_of_optional_struct() {
-        let someStruct = createStruct(named: "SomeStruct")
-        let transformation = TransformationFromJSON.toCustomStructArray(attributeName: "a", propertyName: "p", elementType: someStruct, hasOptionalElements: true)
-        XCTAssertEqual(transformation.optionalUnboxStatement, "self.p = unboxer.unbox(key: \"a\")")
-    }
-    
-    private func createStruct(named name: String) -> SwiftStruct {
-        let initializer = SwiftInitializer(parameters: [])
-        let failableInitializer = SwiftFailableInitializer(requiredTransformations: [], optionalTransformations: [])
-        return SwiftStruct(name: name,
-                           properties: [],
-                           initializer: initializer,
-                           failableInitializer: failableInitializer,
-                           nestedStructs: [])
-    }
+
 }
