@@ -14,7 +14,6 @@ func run(with arguments: [String]) -> ErrorMessage? {
     guard arguments.isEmpty == false else { return "Please provide a JSON file path or directory path." }
     
     let path = (arguments[0] as NSString).resolvingSymlinksInPath
-    
     var isDirectory: ObjCBool = false
     guard FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory) else { return "No such file or directory exists." }
     
@@ -27,22 +26,24 @@ func run(with arguments: [String]) -> ErrorMessage? {
     else {
         jsonFilePaths = [path]
     }
-    
-    let jsonUtilitiesFilePath: String? = jsonFilePaths.count > 1
-        ? (path as NSString).appendingPathComponent("JSONUtilities.swift")
-        : nil
 
-    let shouldIncludeUtils = jsonUtilitiesFilePath == nil
+    let destinationPath: String
+    if arguments.count > 1 {
+        destinationPath = (arguments[1] as NSString).resolvingSymlinksInPath
+    } else {
+        if isDirectory.boolValue {
+            destinationPath = path
+        } else {
+            destinationPath = (path as NSString).deletingLastPathComponent
+        }
+    }
+
     for jsonFilePath in jsonFilePaths {
-        if let errorMessage = generateSwiftFileBasedOnJSON(inFile: jsonFilePath, includeJSONUtilities: shouldIncludeUtils) {
+        if let errorMessage = generateSwiftFileBasedOnJSON(inFile: jsonFilePath, destinationPath: destinationPath) {
             return errorMessage
         }
     }
-    
-    if let jsonUtilitiesFilePath = jsonUtilitiesFilePath {
-        guard writeJSONUtilitiesFile(to: jsonUtilitiesFilePath) else { return "Unable to write JSON utilities file to \(jsonUtilitiesFilePath)" }
-    }
-    
+        
     return nil
 }
 
@@ -65,7 +66,7 @@ private func resolveAbsolutePaths(for jsonFileNames: [String], inDirectory direc
 
 
 // MARK: - Generating Swift file based on JSON
-private func generateSwiftFileBasedOnJSON(inFile jsonFilePath: String, includeJSONUtilities: Bool) -> ErrorMessage? {
+private func generateSwiftFileBasedOnJSON(inFile jsonFilePath: String, destinationPath: String) -> ErrorMessage? {
     let url = URL(fileURLWithPath: jsonFilePath)
     let data: Data
     do    { data = try Data(contentsOf: url) }
@@ -83,24 +84,19 @@ private func generateSwiftFileBasedOnJSON(inFile jsonFilePath: String, includeJS
     else                                                   { return "Unsupported JSON format: must be a dictionary or array of dictionaries." }
 
     let swiftStruct = SwiftStruct.create(from: jsonSchema)
-    writeGeneratedCode(swiftStruct: swiftStruct, jsonFilePath: jsonFilePath)
+    writeGeneratedCode(swiftStruct: swiftStruct, destinationPath: destinationPath)
 
     return nil
 }
 
-func writeGeneratedCode(swiftStruct: SwiftStruct, jsonFilePath: String) {
+func writeGeneratedCode(swiftStruct: SwiftStruct, destinationPath: String) {
     let stringForStruct = SwiftCodeGenerator.generateCode(for: swiftStruct)
-    let swiftFilePath = (jsonFilePath as NSString).deletingLastPathComponent + "/" + swiftStruct.name + ".swift"
+    let swiftFilePath = destinationPath + "/" + swiftStruct.name + ".swift"
     guard write(swiftCode: stringForStruct, toFile: swiftFilePath) else { print ("Unable to write to file: \(swiftFilePath)"); return }
     print(" Struct file created: " + swiftFilePath)
     swiftStruct.nestedStructs.forEach { nestedStruct in
-        writeGeneratedCode(swiftStruct: nestedStruct, jsonFilePath: jsonFilePath)
+        writeGeneratedCode(swiftStruct: nestedStruct, destinationPath: destinationPath)
     }
-}
-
-private func writeJSONUtilitiesFile(to filePath: String) -> Bool {
-    let jsonUtilitiesCode = SwiftCodeGenerator.generateJSONUtilities()
-    return write(swiftCode: jsonUtilitiesCode, toFile: filePath)
 }
 
 private func write(swiftCode: String, toFile filePath: String) -> Bool {
