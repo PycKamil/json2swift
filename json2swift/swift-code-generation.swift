@@ -166,8 +166,8 @@ fileprivate extension SwiftFailableInitializer {
     }
 
     private var linesOfCodeForTransformations: [LineOfCode] {
-        let requiredTransformationLines = sortedRequiredTransformations.map { $0.guardedLetStatement }
-        let optionalTransformationLines = sortedOptionalTransformations.map { $0.letStatement }
+        let requiredTransformationLines = sortedRequiredTransformations.map { $0.requiredUnboxStatement }
+        let optionalTransformationLines = sortedOptionalTransformations.map { $0.optionalUnboxStatement }
         return (requiredTransformationLines + optionalTransformationLines)
     }
 
@@ -197,71 +197,23 @@ internal extension TransformationFromJSON {
         }
     }
 
-    var guardedLetStatement: LineOfCode {
-        //return "self.\(propertyName) = try unboxer.unbox(key:\"\(attributeName)\")"
+    var attributeName: String {
         switch self {
-        case let .toCustomStruct(       attributeName, propertyName, _): return "self.\(propertyName) = try unboxer.unbox(key:\"\(attributeName)\")"
-        case let .toPrimitiveValue(     attributeName, propertyName, _): return "self.\(propertyName) = try unboxer.unbox(key:\"\(attributeName)\")"
-        case let .toCustomStructArray(  attributeName, propertyName, _, _): return "self.\(propertyName) = try unboxer.unbox(key:\"\(attributeName)\")"
-        case let .toPrimitiveValueArray(attributeName, propertyName, _, _): return "self.\(propertyName) = try unboxer.unbox(key:\"\(attributeName)\")"
+        case let .toCustomStruct(attributeName , _, _):           return attributeName
+        case let .toPrimitiveValue(attributeName , _, _):         return attributeName
+        case let .toCustomStructArray(attributeName , _, _, _):   return attributeName
+        case let .toPrimitiveValueArray(attributeName, _, _, _):  return attributeName
         }
     }
 
-    var letStatement: LineOfCode {
-        switch self {
-        case let .toCustomStruct(       attributeName, propertyName, _): return "self.\(propertyName) = unboxer.unbox(key:\"\(attributeName)\")"
-        case let .toPrimitiveValue(     attributeName, propertyName, _): return "self.\(propertyName) = unboxer.unbox(key:\"\(attributeName)\")"
-        case let .toCustomStructArray(  attributeName, propertyName, _, _): return "self.\(propertyName) = unboxer.unbox(key:\"\(attributeName)\")"
-        case let .toPrimitiveValueArray(attributeName, propertyName, _, _): return "self.\(propertyName) = unboxer.unbox(key:\"\(attributeName)\")"
-        }
+    var requiredUnboxStatement: LineOfCode {
+        return "self.\(propertyName) = try unboxer.unbox(key: \"\(attributeName)\")"
     }
 
-    private static func letStatementForCustomStruct(_ attributeName: String, _ propertyName: String, _ type: SwiftStruct) -> LineOfCode {
-        return "let \(propertyName) = \(type.name)(json: json, key: \"\(attributeName)\")"
+    var optionalUnboxStatement: LineOfCode {
+        return "self.\(propertyName) = unboxer.unbox(key: \"\(attributeName)\")"
     }
 
-    private static func letStatementForPrimitiveValue(_ attributeName: String, _ propertyName: String, _ type: SwiftPrimitiveValueType) -> LineOfCode {
-        switch type {
-        case .any:                 return "let \(propertyName) = json[\"\(attributeName)\"] as? Any"
-        case .emptyArray:          return "let \(propertyName) = json[\"\(attributeName)\"] as? [Any?]"
-        case .bool, .int, .string: return "let \(propertyName) = json[\"\(attributeName)\"] as? \(type.name)"
-        case .double:              return "let \(propertyName) = Double(json: json, key: \"\(attributeName)\")" // Allows an integer to be interpreted as a double.
-        case .url:                 return "let \(propertyName) = URL(json: json, key: \"\(attributeName)\")"
-        case .date(let format):    return "let \(propertyName) = Date(json: json, key: \"\(attributeName)\", format: \"\(format)\")"
-        }
-    }
-
-    private static func letStatementForCustomStructArray(_ attributeName: String, _ propertyName: String, _ elementType: SwiftStruct, _ hasOptionalElements: Bool) -> LineOfCode {
-        return hasOptionalElements
-            ? "let \(propertyName) = \(elementType.name).createOptionalInstances(from: json, arrayKey: \"\(attributeName)\")"
-            : "let \(propertyName) = \(elementType.name).createRequiredInstances(from: json, arrayKey: \"\(attributeName)\")"
-    }
-
-    private static func letStatementForPrimitiveValueArray(_ attributeName: String, _ propertyName: String, _ elementType: SwiftPrimitiveValueType, _ hasOptionalElements: Bool) -> LineOfCode {
-        return hasOptionalElements
-            ? letStatementForArrayOfOptionalPrimitiveValues(attributeName, propertyName, elementType)
-            : letStatementForArrayOfRequiredPrimitiveValues(attributeName, propertyName, elementType)
-    }
-
-    private static func letStatementForArrayOfOptionalPrimitiveValues(_ attributeName: String, _ propertyName: String, _ elementType: SwiftPrimitiveValueType) -> LineOfCode {
-        switch elementType {
-        case .any, .bool, .int, .string, .emptyArray: return "let \(propertyName) = (json[\"\(attributeName)\"] as? [Any]).map({ $0.toOptionalValueArray() as [\(elementType.name)?] })"
-        case .date(let format):                       return "let \(propertyName) = (json[\"\(attributeName)\"] as? [Any]).map({ $0.toOptionalDateArray(withFormat: \"\(format)\") })"
-        case .double:                                 return "let \(propertyName) = (json[\"\(attributeName)\"] as? [Any]).map({ $0.toOptionalDoubleArray() })"
-        case .url:                                    return "let \(propertyName) = (json[\"\(attributeName)\"] as? [Any]).map({ $0.toOptionalURLArray() })"
-        }
-    }
-
-    private static func letStatementForArrayOfRequiredPrimitiveValues(_ attributeName: String, _ propertyName: String, _ elementType: SwiftPrimitiveValueType) -> LineOfCode {
-        switch elementType {
-        case .any:                 return "let \(propertyName) = json[\"\(attributeName)\"] as? [Any?]" // Any is treated as optional.
-        case .emptyArray:          return "let \(propertyName) = json[\"\(attributeName)\"] as? [[Any?]]"
-        case .bool, .int, .string: return "let \(propertyName) = json[\"\(attributeName)\"] as? [\(elementType.name)]"
-        case .date(let format):    return "let \(propertyName) = (json[\"\(attributeName)\"] as? [String]).flatMap({ $0.toDateArray(withFormat: \"\(format)\") })"
-        case .double:              return "let \(propertyName) = (json[\"\(attributeName)\"] as? [NSNumber]).map({ $0.toDoubleArray() })"
-        case .url:                 return "let \(propertyName) = (json[\"\(attributeName)\"] as? [String]).flatMap({ $0.toURLArray() })"
-        }
-    }
 }
 
 fileprivate extension SwiftPrimitiveValueType {
