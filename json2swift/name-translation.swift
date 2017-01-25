@@ -11,7 +11,15 @@ import Foundation
 internal extension String {
     func toSwiftStructName() -> String {
         let name = capitalizedWithoutInvalidChars.prefixedWithUnderscoreIfNecessary
-        return name.isEmpty ? "DefaultStructName" : name
+
+        return name.isEmpty ? "DefaultStructName" : name.singularForm()
+    }
+
+    func singularForm() -> String {
+        if self.characters.last == "s" {
+            return String(self.characters.dropLast())
+        }
+        return self
     }
     
     func toSwiftPropertyName() -> String {
