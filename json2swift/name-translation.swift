@@ -16,7 +16,11 @@ internal extension String {
     }
 
     func singularForm() -> String {
-        if self.characters.last == "s" {
+        if self.hasSuffix("xes") {
+            return String(self.characters.dropLast().dropLast())
+
+        } else if self.characters.last == "s" {
+
             return String(self.characters.dropLast())
         }
         return self

@@ -92,7 +92,9 @@ private func generateSwiftFileBasedOnJSON(inFile jsonFilePath: String, destinati
 func writeGeneratedCode(swiftStruct: SwiftStruct, destinationPath: String) {
     let stringForStruct = SwiftCodeGenerator.generateCode(for: swiftStruct)
     let swiftFilePath = destinationPath + "/" + swiftStruct.name + ".swift"
-    guard write(swiftCode: stringForStruct, toFile: swiftFilePath) else { print ("Unable to write to file: \(swiftFilePath)"); return }
+    if swiftStruct.properties.count > 0 { // We don't want empty structs
+        guard write(swiftCode: stringForStruct, toFile: swiftFilePath) else { print ("Unable to write to file: \(swiftFilePath)"); return }
+    }
     print(" Struct file created: " + swiftFilePath)
     swiftStruct.nestedStructs.forEach { nestedStruct in
         writeGeneratedCode(swiftStruct: nestedStruct, destinationPath: destinationPath)

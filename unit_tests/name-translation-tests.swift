@@ -32,6 +32,11 @@ class name_translation_tests: XCTestCase {
         XCTAssertEqual(jsonName.toSwiftStructName(), "FakeName")
     }
 
+    func test_to_swift_struct_name_removes_plurar_not_regular() {
+        let jsonName = "boxes"
+        XCTAssertEqual(jsonName.toSwiftStructName(), "Box")
+    }
+
     func test_to_swift_struct_name_removes_underscore() {
         let jsonName = "fake_name"
         XCTAssertEqual(jsonName.toSwiftStructName(), "FakeName")
