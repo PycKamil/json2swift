@@ -22,7 +22,7 @@ indirect enum JSONType {
     case number(      isRequired: Bool, isFloatingPoint: Bool)
     case date(        isRequired: Bool, format: String)
     case url(         isRequired: Bool)
-    case string(      isRequired: Bool)
+    case string(      isRequired: Bool, value: String)
     case bool(        isRequired: Bool)
     case nullable   // For an attribute that is missing or has a null value.
     case anything   // For an attribute with multiple values of unrelated types.
@@ -38,7 +38,7 @@ extension JSONType {
         case let .number      (isRequired, _):    return isRequired
         case let .date        (isRequired, _):    return isRequired
         case let .url         (isRequired):       return isRequired
-        case let .string      (isRequired):       return isRequired
+        case let .string      (isRequired, _):    return isRequired
         case let .bool        (isRequired):       return isRequired
         case     .nullable, .anything:            return false
         case     .emptyArray:                     return true
@@ -49,6 +49,13 @@ extension JSONType {
         switch self {
         case let .element(_, schema):                return schema
         case let .elementArray(_, elementSchema, _): return elementSchema
+        default:                                     return nil
+        }
+    }
+
+    var jsonStringValue: String? {
+        switch self {
+        case let .string(_, value):                return value
         default:                                     return nil
         }
     }
@@ -80,7 +87,11 @@ struct JSONElementSchema {
     let attributes: JSONAttributeMap
     
     init(name: String, attributes: JSONAttributeMap = [:]) {
-        self.name = name
+        if let customNameFromJSON = attributes["custom_type"]?.jsonStringValue {
+            self.name = customNameFromJSON
+        } else {
+            self.name = name
+        }
         self.attributes = attributes
     }
 }

@@ -105,7 +105,7 @@ fileprivate extension JSONType {
             return .url(isRequired: true)
         }
         else {
-            return .string(isRequired: true)
+            return .string(isRequired: true, value: string)
         }
     }
 }
