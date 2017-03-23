@@ -13,6 +13,7 @@ struct SwiftStruct {
     let properties: [SwiftProperty]
     let initializer: SwiftInitializer
     let failableInitializer: SwiftFailableInitializer
+    let comparator: SwiftComparator
     let nestedStructs: [SwiftStruct]
 }
 
@@ -38,6 +39,10 @@ struct SwiftParameter {
 struct SwiftFailableInitializer {
     let requiredTransformations: [TransformationFromJSON]
     let optionalTransformations: [TransformationFromJSON]
+}
+
+struct SwiftComparator {
+    let properties: [SwiftProperty]
 }
 
 struct TransformationFromJSON {
