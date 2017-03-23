@@ -49,11 +49,15 @@ fileprivate struct Indentation {
 
     func apply(toFirstLine firstLine: LineOfCode,
                nestedLines generateNestedLines: (Indentation) -> [LineOfCode],
-               andLastLine lastLine: LineOfCode) -> [LineOfCode] {
+               andLastLine lastLine: LineOfCode?) -> [LineOfCode] {
         let first  = apply(toLineOfCode: firstLine)
         let middle = generateNestedLines(self.increased())
-        let last   = apply(toLineOfCode: lastLine)
-        return [first] + middle + [last]
+        var returnValue = [first] + middle
+        if let lastLine = lastLine {
+            let last   = apply(toLineOfCode: lastLine)
+            returnValue += [last]
+        }
+        return returnValue
     }
 
     private func increased() -> Indentation {
@@ -64,13 +68,13 @@ fileprivate struct Indentation {
 fileprivate extension SwiftStruct {
     func toSwiftCode(indentedBy indentChars: String = "    ") -> SwiftCode {
         let indentation = Indentation(chars: indentChars)
-        let linesOfCode = toLinesOfCode(at: indentation) + toExtenstionLinesOfCode(at: indentation)
+        let linesOfCode = toLinesOfCode(at: indentation) + toExtenstionLinesOfCode(at: indentation) + toEqualLinesOfCode(at: indentation)
         return linesOfCode.joined(separator: "\n")
     }
 
     private func toLinesOfCode(at indentation: Indentation) -> [LineOfCode] {
         return indentation.apply(
-            toFirstLine: "public struct \(name) {",
+            toFirstLine: "public struct \(name): Equatable {",
             nestedLines:      linesOfCodeForMembers(at:),
             andLastLine: "}")
     }
@@ -80,6 +84,12 @@ fileprivate extension SwiftStruct {
             toFirstLine: "\nextension \(name): Unboxable {",
             nestedLines:       failableInitializer.toLinesOfCode(at:),
             andLastLine: "}")
+    }
+
+    private func toEqualLinesOfCode(at indentation: Indentation) -> [LineOfCode] {
+        return indentation.apply(toFirstLine: "\npublic func == (lhs: \(name), rhs: \(name)) -> Bool {",
+                                 nestedLines: linesOfCodeForComparing(at:),
+                                 andLastLine: "}")
     }
 
     private func linesOfCodeForMembers(at indentation: Indentation) -> [LineOfCode] {
@@ -92,6 +102,10 @@ fileprivate extension SwiftStruct {
             let propertyCode = property.toLineOfCode()
             return indentation.apply(toLineOfCode: propertyCode)
         }
+    }
+
+    private func linesOfCodeForComparing(at indentation: Indentation) -> [LineOfCode] {
+        return comparator.toLinesOfCode(at: indentation)
     }
 
     private var sortedProperties: [SwiftProperty] {
@@ -117,11 +131,41 @@ fileprivate extension SwiftProperty {
     func toLineOfCode() -> LineOfCode {
         return "public let \(name): \(type.toSwiftCode())"
     }
+
+    func toComparingLineOfCode(isFirstProperty: Bool) -> LineOfCode {
+        let line = "lhs.\(name) == rhs.\(name)"
+        if isFirstProperty {
+            return line
+        }
+        return "&& " + line
+    }
 }
 
 fileprivate extension SwiftParameter {
     func toSwiftCode() -> SwiftCode {
         return "\(name): \(type.toSwiftCode())"
+    }
+}
+
+fileprivate extension SwiftComparator {
+    func toLinesOfCode(at indentation: Indentation) -> [LineOfCode] {
+        return indentation.apply(
+            toFirstLine: "return",
+            nestedLines:  linesOfCodeForComparing(at:),
+            andLastLine: nil)
+    }
+
+    func linesOfCodeForComparing(at indentation: Indentation) -> [LineOfCode] {
+        return sortedProperties.enumerated().map { (index, property) in
+            let propertyCode = property.toComparingLineOfCode(isFirstProperty: index == 0)
+            return indentation.apply(toLineOfCode: propertyCode)
+        }
+    }
+
+    private var sortedProperties: [SwiftProperty] {
+        return properties.sorted { (lhs, rhs) -> Bool in
+            return lhs.name.compare(rhs.name) == .orderedAscending
+        }
     }
 }
 

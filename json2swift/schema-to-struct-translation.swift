@@ -15,10 +15,12 @@ internal extension SwiftStruct {
         let initializer = SwiftInitializer(parameters: parameters)
         let failableInitializer = SwiftFailableInitializer.create(forStructBasedOn: jsonElementSchema)
         let nestedStructs = createNestedStructs(forElementsIn: jsonElementSchema)
+        let comparator = SwiftComparator(properties: properties)
         return SwiftStruct(name: name,
                            properties: properties,
                            initializer: initializer,
                            failableInitializer: failableInitializer,
+                           comparator: comparator,
                            nestedStructs: nestedStructs)
     }
     
