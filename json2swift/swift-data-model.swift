@@ -15,6 +15,7 @@ struct SwiftStruct {
     let failableInitializer: SwiftFailableInitializer
     let comparator: SwiftComparator
     let nestedStructs: [SwiftStruct]
+    let serializable: Serializable
 }
 
 struct SwiftProperty {
@@ -45,18 +46,12 @@ struct SwiftComparator {
     let properties: [SwiftProperty]
 }
 
+struct Serializable {
+    let properties: [SwiftProperty]
+    let requiredTransformations: [TransformationFromJSON]
+}
+
 struct TransformationFromJSON {
     let attributeName: String
     let propertyName: String
-}
-
-enum SwiftPrimitiveValueType {
-    case int
-    case double
-    case date(format: String)
-    case url
-    case string
-    case bool
-    case any
-    case emptyArray
 }

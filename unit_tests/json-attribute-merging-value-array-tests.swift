@@ -8,10 +8,10 @@
 
 import XCTest
 
-private let rars = JSONType.valueArray(isRequired: true,   valueType: .string(isRequired: true))
-private let raos = JSONType.valueArray(isRequired: true,   valueType: .string(isRequired: false))
-private let oars = JSONType.valueArray(isRequired: false,  valueType: .string(isRequired: true))
-private let oaos = JSONType.valueArray(isRequired: false,  valueType: .string(isRequired: false))
+private let rars = JSONType.valueArray(isRequired: true,   valueType: .string(isRequired: true, value: ""))
+private let raos = JSONType.valueArray(isRequired: true,   valueType: .string(isRequired: false, value: ""))
+private let oars = JSONType.valueArray(isRequired: false,  valueType: .string(isRequired: true, value: ""))
+private let oaos = JSONType.valueArray(isRequired: false,  valueType: .string(isRequired: false, value: ""))
 
 class json_attribute_merging_value_array_tests: XCTestCase {
     /*

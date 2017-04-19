@@ -78,7 +78,7 @@ class json_schema_inference_value_array_tests: XCTestCase {
             let arrayOfOptionalArrayOfOptionalString: JSONType =
                 .valueArray(isRequired: true, valueType:
                     .valueArray(isRequired: false, valueType:
-                        .string(isRequired: false)))
+                        .string(isRequired: false, value: "A")))
             XCTAssertEqual(type, arrayOfOptionalArrayOfOptionalString)
         }
         else { XCTFail() }

@@ -1,0 +1,25 @@
+{
+  "Response": [
+    {
+      "fullUrl": "http://buehehe.com",
+      "emptyDictionary": {},
+      "primitiveType": true,
+      "dataSources": {
+        "custom_type": "DataSourcesDictionary"
+      },
+      "slot": {
+        "custom_type": "Slot",
+        "custom_key": "boxes"
+      }
+    },
+    {
+      "dataSources": {
+        "custom_type": "DataSourcesDictionary"
+      },
+      "slot": {
+        "custom_type": "Slot",
+        "custom_key": "boxes"
+      }
+    }
+  ]
+}

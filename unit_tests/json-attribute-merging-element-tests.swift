@@ -12,17 +12,17 @@ private let stringAttributeName = "string-attribute"
 private let boolAttributeName   = "bool-attribute"
 private let dateAttributeName   = "date-attribute"
 private let schemaX = JSONElementSchema(name: "schema", attributes: [
-    stringAttributeName: .string(isRequired: false),
+    stringAttributeName: .string(isRequired: false, value: ""),
     boolAttributeName:   .bool(  isRequired: true),
     dateAttributeName:   .date(  isRequired: true, format: "MM/dd/yyyy")
     ])
 private let schemaY = JSONElementSchema(name: "schema", attributes: [
-    stringAttributeName: .string(isRequired: true),
+    stringAttributeName: .string(isRequired: true, value: ""),
     boolAttributeName:   .bool(  isRequired: false),
     dateAttributeName:   .date(  isRequired: true, format: "MM/dd/yyyy")
     ])
 private let schemaM = JSONElementSchema(name: "schema", attributes: [
-    stringAttributeName: .string(isRequired: false),
+    stringAttributeName: .string(isRequired: false, value: ""),
     boolAttributeName:   .bool(  isRequired: false),
     dateAttributeName:   .date(  isRequired: true, format: "MM/dd/yyyy")
     ])

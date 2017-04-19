@@ -13,17 +13,37 @@ internal extension SwiftStruct {
         let properties = SwiftProperty.createProperties(forStructBasedOn: jsonElementSchema)
         let parameters = SwiftParameter.createParameters(for: properties)
         let initializer = SwiftInitializer(parameters: parameters)
-        let failableInitializer = SwiftFailableInitializer.create(forStructBasedOn: jsonElementSchema)
+        let changedAttributes = changedAttributeNames(forStructBasedOn: jsonElementSchema)
+        let failableInitializer = SwiftFailableInitializer(requiredTransformations: changedAttributes.0,
+                                                           optionalTransformations: changedAttributes.1)
         let nestedStructs = createNestedStructs(forElementsIn: jsonElementSchema)
         let comparator = SwiftComparator(properties: properties)
+        let serializable = Serializable(properties: properties, requiredTransformations: changedAttributes.0)
+
         return SwiftStruct(name: name,
                            properties: properties,
                            initializer: initializer,
                            failableInitializer: failableInitializer,
                            comparator: comparator,
-                           nestedStructs: nestedStructs)
+                           nestedStructs: nestedStructs,
+                           serializable: serializable)
     }
-    
+
+    // MARK: - JSONElementSchema --> TransformationFromJSON
+    static func changedAttributeNames(forStructBasedOn jsonElementSchema: JSONElementSchema) -> ([TransformationFromJSON], [TransformationFromJSON]) {
+        let attributeMap = jsonElementSchema.attributes
+        let allAttributeNames = Set(attributeMap.keys)
+        let requiredAttributeNames = allAttributeNames.filter { attributeMap[$0]!.isRequired }
+        let optionalAttributeNames = allAttributeNames.subtracting(requiredAttributeNames)
+        let requiredTransformations: [TransformationFromJSON] = requiredAttributeNames.map {
+            TransformationFromJSON.create(forAttributeNamed: $0, inAttributeMap: attributeMap)
+        }
+        let optionalTransformations: [TransformationFromJSON] = optionalAttributeNames.map {
+            TransformationFromJSON.create(forAttributeNamed: $0, inAttributeMap: attributeMap)
+        }
+        return (requiredTransformations, optionalTransformations)
+    }
+
     private static func createNestedStructs(forElementsIn jsonElementSchema: JSONElementSchema) -> [SwiftStruct] {
         return jsonElementSchema.attributes.values.flatMap(SwiftStruct.tryToCreate(fromJSONType:))
     }

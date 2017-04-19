@@ -31,7 +31,7 @@ struct SwiftCodeGenerator {
 typealias SwiftCode = String
 typealias LineOfCode = SwiftCode
 
-fileprivate struct Indentation {
+internal struct Indentation {
     private let chars: String
     private let level: Int
     private let value: String
@@ -68,7 +68,10 @@ fileprivate struct Indentation {
 fileprivate extension SwiftStruct {
     func toSwiftCode(indentedBy indentChars: String = "    ") -> SwiftCode {
         let indentation = Indentation(chars: indentChars)
-        let linesOfCode = toLinesOfCode(at: indentation) + toExtenstionLinesOfCode(at: indentation) + toEqualLinesOfCode(at: indentation)
+        let linesOfCode = toLinesOfCode(at: indentation)
+            + toExtenstionLinesOfCode(at: indentation)
+            + toEqualLinesOfCode(at: indentation)
+            + toSerializableExtension(at: indentation)
         return linesOfCode.joined(separator: "\n")
     }
 
@@ -92,13 +95,20 @@ fileprivate extension SwiftStruct {
                                  andLastLine: "}")
     }
 
+    private func toSerializableExtension(at indentation: Indentation) -> [LineOfCode] {
+        return indentation.apply(
+            toFirstLine: "\nextension \(name): Serializable {",
+            nestedLines:       serializable.toLinesOfCode(at:),
+            andLastLine: "}")
+    }
+
     private func linesOfCodeForMembers(at indentation: Indentation) -> [LineOfCode] {
         return linesOfCodeForProperties(at: indentation)
             + initializer.toLinesOfCode(at: indentation)
     }
 
     private func linesOfCodeForProperties(at indentation: Indentation) -> [LineOfCode] {
-        return sortedProperties.map { property in
+        return sorted(properties: properties).map { property in
             let propertyCode = property.toLineOfCode()
             return indentation.apply(toLineOfCode: propertyCode)
         }
@@ -106,12 +116,6 @@ fileprivate extension SwiftStruct {
 
     private func linesOfCodeForComparing(at indentation: Indentation) -> [LineOfCode] {
         return comparator.toLinesOfCode(at: indentation)
-    }
-
-    private var sortedProperties: [SwiftProperty] {
-        return properties.sorted { (lhs, rhs) -> Bool in
-            return lhs.name.compare(rhs.name) == .orderedAscending
-        }
     }
 
     private var sortedNestedStructs: [SwiftStruct] {
@@ -156,16 +160,57 @@ fileprivate extension SwiftComparator {
     }
 
     func linesOfCodeForComparing(at indentation: Indentation) -> [LineOfCode] {
-        return sortedProperties.enumerated().map { (index, property) in
+        return sorted(properties: properties).enumerated().map { (index, property) in
             let propertyCode = property.toComparingLineOfCode(isFirstProperty: index == 0)
             return indentation.apply(toLineOfCode: propertyCode)
         }
     }
+}
 
-    private var sortedProperties: [SwiftProperty] {
-        return properties.sorted { (lhs, rhs) -> Bool in
-            return lhs.name.compare(rhs.name) == .orderedAscending
+func sorted(properties: [SwiftProperty]) -> [SwiftProperty] {
+    return properties.sorted { (lhs, rhs) -> Bool in
+        return lhs.name.compare(rhs.name) == .orderedAscending
+    }
+}
+
+internal extension Serializable {
+    func toLinesOfCode(at indentation: Indentation) -> [LineOfCode] {
+        return indentation.apply(
+            toFirstLine: "func serialize() -> Any {",
+            nestedLines:  linesOfSerialization(at:),
+            andLastLine: "}")
+    }
+
+    func linesOfSerialization(at indentation: Indentation) -> [LineOfCode] {
+        let sortedProperties = sorted(properties: properties)
+        var lineOfCodes: [LineOfCode] = []
+        lineOfCodes.append(indentation.apply(toLineOfCode: "var serializationDictionary: [AnyHashable: Any] = [:]"))
+        lineOfCodes.append(contentsOf: sortedProperties.enumerated().map { (index, property) in
+
+            var lineOfCode = ""
+            if property.type.isOptional {
+                lineOfCode += "if let \(property.name) = \(property.name) { "
+                lineOfCode += assignToDictionary(property: property)
+                lineOfCode += " }"
+            } else {
+                lineOfCode += assignToDictionary(property: property)
+            }
+
+            return indentation.apply(toLineOfCode: lineOfCode)
+        })
+        lineOfCodes.append(indentation.apply(toLineOfCode: "return serializationDictionary"))
+        return lineOfCodes
+    }
+
+    func customPropertyKey(property: SwiftProperty) -> String {
+        if let transformation = self.requiredTransformations.filter({ $0.propertyName == property.name }).first {
+            return transformation.attributeName
         }
+        return property.name
+    }
+
+    func assignToDictionary(property: SwiftProperty) -> LineOfCode {
+        return "serializationDictionary[\"\(customPropertyKey(property: property))\"] = \(property.name).serialize()"
     }
 }
 
@@ -238,20 +283,5 @@ internal extension TransformationFromJSON {
 
     var optionalUnboxStatement: LineOfCode {
         return "self.\(propertyName) = unboxer.unbox(key: \"\(attributeName)\")"
-    }
-}
-
-fileprivate extension SwiftPrimitiveValueType {
-    var name: String {
-        switch self {
-        case .any:        return "Any"
-        case .bool:       return "Bool"
-        case .date:       return "Date"
-        case .double:     return "Double"
-        case .emptyArray: return "[Any?]"
-        case .int:        return "Int"
-        case .string:     return "String"
-        case .url:        return "URL"
-        }
     }
 }

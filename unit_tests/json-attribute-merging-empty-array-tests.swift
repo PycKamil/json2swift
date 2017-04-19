@@ -13,8 +13,8 @@ private let schemaX = JSONElementSchema(name: "schema", attributes: [:])
 private let rax = JSONType.elementArray(isRequired: true,  elementSchema: schemaX, hasNullableElements: false)
 private let oax = JSONType.elementArray(isRequired: false, elementSchema: schemaX, hasNullableElements: false)
 
-private let ras = JSONType.valueArray(isRequired: true,  valueType: .string(isRequired: true))
-private let oas = JSONType.valueArray(isRequired: false, valueType: .string(isRequired: true))
+private let ras = JSONType.valueArray(isRequired: true,  valueType: .string(isRequired: true, value: ""))
+private let oas = JSONType.valueArray(isRequired: false, valueType: .string(isRequired: true, value: ""))
 
 class json_attribute_merging_empty_array_tests: XCTestCase {
     /*
