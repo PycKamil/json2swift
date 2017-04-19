@@ -85,7 +85,7 @@ class json_schema_inference_element_array_tests: XCTestCase {
         XCTAssertEqual(schema.attributes.count, 2)
         
         if let stringAttribute = schema.attributes["string-attribute"] {
-            XCTAssertEqual(stringAttribute, .string(isRequired: true))
+            XCTAssertEqual(stringAttribute, .string(isRequired: true, value: "apple"))
         }
         else { XCTFail() }
         

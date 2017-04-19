@@ -51,7 +51,7 @@ class json_schema_inference_element_tests: XCTestCase {
         let jsonElement = ["string-attribute": "some text"]
         let schema = JSONElementSchema.inferred(from: jsonElement, named: dummyName)
         if let type = schema.attributes["string-attribute"] {
-            XCTAssertEqual(type, .string(isRequired: true))
+            XCTAssertEqual(type, .string(isRequired: true, value: "some text"))
         }
         else { XCTFail() }
     }
@@ -84,7 +84,7 @@ class json_schema_inference_element_tests: XCTestCase {
         if let type = schema.attributes["element-attribute"] {
             let expectedSchema = JSONElementSchema(
                 name: "element-attribute",
-                attributes: ["string-attribute": .string(isRequired: true)])
+                attributes: ["string-attribute": .string(isRequired: true, value: "some text")])
             XCTAssertEqual(type, .element(isRequired: true, schema: expectedSchema))
         }
         else { XCTFail() }
@@ -102,7 +102,7 @@ class json_schema_inference_element_tests: XCTestCase {
         if let type = schema.attributes["array-attribute"] {
             let expectedSchema = JSONElementSchema(
                 name: "array-attribute",
-                attributes: ["string-attribute": .string(isRequired: true)])
+                attributes: ["string-attribute": .string(isRequired: true, value: "some text")])
             XCTAssertEqual(type, .elementArray(isRequired: true, elementSchema: expectedSchema, hasNullableElements: false))
         }
         else { XCTFail() }

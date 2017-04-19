@@ -31,7 +31,7 @@ struct SwiftCodeGenerator {
 typealias SwiftCode = String
 typealias LineOfCode = SwiftCode
 
-fileprivate struct Indentation {
+internal struct Indentation {
     private let chars: String
     private let level: Int
     private let value: String
@@ -173,7 +173,7 @@ func sorted(properties: [SwiftProperty]) -> [SwiftProperty] {
     }
 }
 
-fileprivate extension Serializable {
+internal extension Serializable {
     func toLinesOfCode(at indentation: Indentation) -> [LineOfCode] {
         return indentation.apply(
             toFirstLine: "func serialize() -> Any {",

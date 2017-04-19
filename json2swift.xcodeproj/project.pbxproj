@@ -41,6 +41,7 @@
 		03C8303F1DC3B98500999D21 /* failable-initializer-translation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03C8303D1DC3B98500999D21 /* failable-initializer-translation.swift */; };
 		03DCE0AA1DB086C10087787F /* json-helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03DCE0A91DB086C10087787F /* json-helpers.swift */; };
 		03DCE0AB1DB086C10087787F /* json-helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03DCE0A91DB086C10087787F /* json-helpers.swift */; };
+		B73E73DC1EA76979006D9EBC /* Response.json in Resources */ = {isa = PBXBuildFile; fileRef = B73E73DB1EA76979006D9EBC /* Response.json */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -83,6 +84,7 @@
 		03B52FD61DC3FD9D00910D1B /* command-line-interface.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "command-line-interface.swift"; sourceTree = "<group>"; };
 		03C8303D1DC3B98500999D21 /* failable-initializer-translation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "failable-initializer-translation.swift"; sourceTree = "<group>"; };
 		03DCE0A91DB086C10087787F /* json-helpers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = "json-helpers.swift"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
+		B73E73DB1EA76979006D9EBC /* Response.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Response.json; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -166,6 +168,7 @@
 		03B0D0D01DAFCD9C00D20E31 /* unit_tests */ = {
 			isa = PBXGroup;
 			children = (
+				B73E73DB1EA76979006D9EBC /* Response.json */,
 				03B0D0D31DAFCD9C00D20E31 /* Info.plist */,
 				03B0D0E11DAFCDF700D20E31 /* json-attribute-merging-boolean-tests.swift */,
 				03B0D0E01DAFCDF700D20E31 /* json-attribute-merging-element-array-tests.swift */,
@@ -264,6 +267,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B73E73DC1EA76979006D9EBC /* Response.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -417,6 +421,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited)";
+				PRODUCT_BUNDLE_IDENTIFIER = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 3.0;
 			};
@@ -425,6 +430,7 @@
 		03B0D0CA1DAFCD7C00D20E31 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				PRODUCT_BUNDLE_IDENTIFIER = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 3.0;
 			};

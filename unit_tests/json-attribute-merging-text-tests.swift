@@ -12,8 +12,8 @@ private let rd = JSONType.date(isRequired: true,  format: "M/d/yyyy")
 private let od = JSONType.date(isRequired: false, format: "M/d/yyyy")
 private let ru = JSONType.url(isRequired: true)
 private let ou = JSONType.url(isRequired: false)
-private let rs = JSONType.string(isRequired: true)
-private let os = JSONType.string(isRequired: false)
+private let rs = JSONType.string(isRequired: true, value: "")
+private let os = JSONType.string(isRequired: false, value: "")
 
 class json_attribute_merging_text_tests: XCTestCase {
     /*
